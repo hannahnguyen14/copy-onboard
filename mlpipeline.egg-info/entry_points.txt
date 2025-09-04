@@ -1,0 +1,2 @@
+[console_scripts]
+mlpipeline = mlpipeline.__main__:main

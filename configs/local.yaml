@@ -1,0 +1,10 @@
+dataset_path: tests/data/bank_churners.csv
+target_column: target
+valid_size: 0.2
+random_state: 42
+model_class: mlpipeline.model.LogisticRegressionModel
+metrics:
+  - ACCURACY
+  - PRECISION
+  - RECALL
+  - F1_SCORE

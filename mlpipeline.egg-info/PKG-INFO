@@ -1,0 +1,76 @@
+Metadata-Version: 2.4
+Name: mlpipeline
+Version: 0.1
+Summary: mlpipeline does something
+Author: VNPT@IC
+License: Copyright (c) 2024, Data Science Team - VNPT AI
+        
+        All rights reserved.
+        
+        Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+        
+        Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+        Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: pandas==2.2.3
+Requires-Dist: PyYAML==6.0.2
+Requires-Dist: pydantic>=2.0.0
+Requires-Dist: scikit-learn==1.5.2
+Requires-Dist: loguru==0.7.3
+Provides-Extra: dev
+Requires-Dist: pandas==2.2.3; extra == "dev"
+Requires-Dist: black==23.3.0; extra == "dev"
+Requires-Dist: flake8==6.0.0; extra == "dev"
+Requires-Dist: mypy==1.8.0; extra == "dev"
+Requires-Dist: isort==5.12.0; extra == "dev"
+Requires-Dist: types-PyYAML==6.0.12.10; extra == "dev"
+Requires-Dist: pre-commit==3.3.2; extra == "dev"
+Requires-Dist: pylint==3.2.7; extra == "dev"
+Requires-Dist: pytest==7.3.2; extra == "dev"
+Provides-Extra: test
+Requires-Dist: pandas==2.2.3; extra == "test"
+Requires-Dist: pytest==7.3.2; extra == "test"
+Dynamic: license-file
+
+# ML pipeline
+
+## Setup
+### Requirements
+* python 3.11
+### Setup the environment and python packages
+```shell
+make venv PYTHON=python3.11
+```
+### Activate environment
+```shell
+source mlpipeline_env/bin/activate
+```
+
+## Project Commands
+### Run the pipeline
+You can run the pipeline directly using the package's `__main__.py` file:
+
+```shell
+# Run with default config
+python -m mlpipeline
+
+# Run with custom config file
+python -m mlpipeline --config path/to/your/config.yaml
+```
+
+The `__main__.py` file provides a command-line interface that:
+- Accepts a `--config` argument for the configuration file path
+- Runs the complete pipeline using the specified configuration
+- Outputs the results to the console
+
+### Run unit test
+```shell
+make test
+```
+### Run styling
+```shell
+make style
+```
