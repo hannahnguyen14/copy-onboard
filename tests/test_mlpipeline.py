@@ -24,6 +24,7 @@ class TestPipeline:
 
     def test_clean_up(self):
         self.clean_folder()
+        print("hello")
 
     def test_end_to_end_pipeline(self):
         self.clean_folder()
