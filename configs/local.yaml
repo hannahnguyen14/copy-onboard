@@ -1,5 +1,6 @@
 dataset_path: tests/data/bank_churners.csv
 target_column: target
+id_keys: ['clientnum']
 valid_size: 0.2
 random_state: 42
 model_class: mlpipeline.model.LogisticRegressionModel
@@ -8,3 +9,5 @@ metrics:
   - PRECISION
   - RECALL
   - F1_SCORE
+
+numeric_config: configs/numeric.yaml
