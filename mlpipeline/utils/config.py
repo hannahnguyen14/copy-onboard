@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from pydantic import BaseModel, Field
+from typing import Optional
 
 
 class Config(BaseModel):
@@ -16,6 +17,8 @@ class Config(BaseModel):
     random_state: int = Field(default=42, description="Random seed for reproducibility")
     model_class: str = Field(..., description="Model class to use")
     metrics: list[str] = Field(..., description="Metrics to use for evaluation")
+    numeric_config: Optional[str] = None
+    id_keys: Optional[list[str]] = None
 
 
 def load_config(config_path: str | Path) -> Config:
