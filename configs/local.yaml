@@ -10,4 +10,4 @@ metrics:
   - RECALL
   - F1_SCORE
 
-numeric_config: configs/numeric.yaml
+preprocess: configs/preprocess.yaml
