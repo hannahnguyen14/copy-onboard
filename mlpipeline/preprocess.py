@@ -2,10 +2,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Final, List
+from typing import Final
 
 import pandas as pd
-import yaml
 
 from mlpipeline.cleaning import (
     coerce_numeric_columns,
@@ -17,7 +16,7 @@ from mlpipeline.cleaning import (
     standardize_na_tokens,
     strip_text_whitespace,
 )
-from mlpipeline.utils.config import Config
+from mlpipeline.utils.config import Config, PreprocessConfig, load_config
 from mlpipeline.utils.logger import logger
 
 
@@ -26,27 +25,15 @@ class Preprocessor:
 
     def __init__(self, config: Config) -> None:
         self.config: Final[Config] = config
-        self._numeric_keys: List[str] = []
-        numeric_cfg = getattr(self.config, "numeric_config", None)
-        if numeric_cfg:
-            path = Path(numeric_cfg)
-            if not path.exists():
-                raise FileNotFoundError(f"Numeric config not found at: {path}")
-            with path.open("r", encoding="utf-8") as f:
-                data = yaml.safe_load(f) or []
-                if isinstance(data, dict) and "numeric_keys" in data:
-                    keys = data["numeric_keys"]
-                elif isinstance(data, list):
-                    keys = data
-                else:
-                    raise TypeError(
-                        "must be either a YAML list or a mapping with numeric_keys")
-                self._numeric_keys = [str(k) for k in keys]
-        raw_ids = getattr(self.config, "id_keys", [])
-        if isinstance(raw_ids, str):
-            self._id_keys = [raw_ids]
+
+        # Load preprocess.yaml if provided
+        if self.config.preprocess:
+            pp: PreprocessConfig = load_config(self.config.preprocess, PreprocessConfig)
+            self._numeric_keys = pp.numeric_keys
+            self._id_keys = pp.id_keys
         else:
-            self._id_keys = [str(k) for k in (raw_ids or [])]
+            self._numeric_keys = []
+            self._id_keys = []
 
     def run(self) -> pd.DataFrame:
         """Run the full preprocessing: load then clean."""
@@ -74,7 +61,8 @@ class Preprocessor:
         for id_col in self._id_keys:
             if id_col in dfx.columns:
                 dfx[id_col] = (
-                    dfx[id_col].astype("string").str.replace(r"\.0$", "", regex=True))
+                    dfx[id_col].astype("string").str.replace(r"\.0$", "", regex=True)
+                )
         tgt = self.config.target_column  # Chỉ chuẩn hoá khi có target
         if tgt in dfx.columns or "attrition_flag" in dfx.columns:
             dfx = ensure_target_binary(dfx, target_col=tgt)
