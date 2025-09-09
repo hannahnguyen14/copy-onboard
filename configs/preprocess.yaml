@@ -14,3 +14,6 @@ numeric_keys:
   - total_trans_ct
   - total_ct_chng_q4_q1
   - avg_utilization_ratio
+
+id_keys:
+  - clientnum
