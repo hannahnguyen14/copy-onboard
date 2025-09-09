@@ -6,7 +6,7 @@ from pathlib import Path
 # from mlpipeline.feature_manager import FeatureManager
 # from mlpipeline.model import MLModel
 # from mlpipeline.preprocess import Preprocessor
-from mlpipeline.utils.config import load_config
+from mlpipeline.utils.config import Config, load_config
 # from mlpipeline.utils.factory import create
 from mlpipeline.utils.logger import logger
 
@@ -15,7 +15,7 @@ class Pipeline:
     """Orchestrates the complete machine learning pipeline workflow."""
 
     def __init__(self, config_path: str | Path):
-        self.config = load_config(config_path)
+        self.config = load_config(config_path, Config)
         # self.preprocessor = self._get_preprocessor()
         # self.model = self._get_model()
         # self.evaluator = self._get_evaluator()
