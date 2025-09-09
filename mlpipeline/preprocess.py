@@ -1,70 +1,50 @@
-# mlpipeline/preprocess.py
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Final
+from typing import Optional, Type, overload
 
-import pandas as pd
-
-from mlpipeline.cleaning import (
-    coerce_numeric_columns,
-    drop_id_duplicates_then_full,
-    ensure_target_binary,
-    normalize_basic_categoricals,
-    normalize_column_names,
-    remove_garbage_tokens,
-    standardize_na_tokens,
-    strip_text_whitespace,
-)
-from mlpipeline.utils.config import Config, PreprocessConfig, load_config
-from mlpipeline.utils.logger import logger
+import yaml
+from pydantic import BaseModel, Field
 
 
-class Preprocessor:
-    """Preprocessor class to load and clean raw datasets."""
+class PreprocessConfig(BaseModel):
+    numeric_keys: list[str] = Field(..., description="numeric columns")
+    id_keys: list[str] = Field(..., description="ID column")
 
-    def __init__(self, config: Config) -> None:
-        self.config: Final[Config] = config
 
-        # Load preprocess.yaml if provided
-        if self.config.preprocess:
-            pp: PreprocessConfig = load_config(self.config.preprocess, PreprocessConfig)
-            self._numeric_keys = pp.numeric_keys
-            self._id_keys = pp.id_keys
-        else:
-            self._numeric_keys = []
-            self._id_keys = []
+class Config(BaseModel):
+    """Configuration for the churn pipeline using Pydantic for validation."""
 
-    def run(self) -> pd.DataFrame:
-        """Run the full preprocessing: load then clean."""
-        logger.info("Preprocessor.run() [load -> clean]")
-        return self.clean(self.load())
+    dataset_path: Path = Field(..., description="Path to the dataset file")
+    target_column: str = Field(..., description="Name of the target column")
+    valid_size: float = Field(
+        default=0.2, ge=0.0, lt=1.0, description="Validation set size"
+    )
+    random_state: int = Field(default=42, description="Random seed for reproducibility")
+    model_class: str = Field(..., description="Model class to use")
+    metrics: list[str] = Field(..., description="Metrics to use for evaluation")
+    preprocess: Optional[Path] = Field(
+        default=None, description="Path to preprocess YAML"
+    )
 
-    def load(self) -> pd.DataFrame:
-        """Load dataset from CSV path in config."""
-        path = Path(self.config.dataset_path)
-        logger.info(f"Loading dataset from: {path.as_posix()}")
-        if not path.exists():
-            raise FileNotFoundError(f"Dataset not found at: {path}")
-        return pd.read_csv(path).copy(deep=True)
 
-    def clean(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Clean dataset by applying a series of safe transformations."""
-        dfx = df.copy(deep=True)
-        dfx = normalize_column_names(dfx)
-        dfx = strip_text_whitespace(dfx)
-        dfx = remove_garbage_tokens(dfx)
-        dfx = standardize_na_tokens(dfx)
-        dfx = normalize_basic_categoricals(dfx)
-        dfx = coerce_numeric_columns(dfx, self._numeric_keys)
-        # ép ID thành string & bỏ .0
-        for id_col in self._id_keys:
-            if id_col in dfx.columns:
-                dfx[id_col] = (
-                    dfx[id_col].astype("string").str.replace(r"\.0$", "", regex=True)
-                )
-        tgt = self.config.target_column  # Chỉ chuẩn hoá khi có target
-        if tgt in dfx.columns or "attrition_flag" in dfx.columns:
-            dfx = ensure_target_binary(dfx, target_col=tgt)
-        dfx = drop_id_duplicates_then_full(dfx, id_keys=self._id_keys)
-        return dfx
+@overload
+def load_config(config_path: str | Path, model: Type[Config] = ...) -> Config:
+    ...
+
+
+@overload
+def load_config(
+    config_path: str | Path, model: Type[PreprocessConfig]
+) -> PreprocessConfig:
+    ...
+
+
+def load_config(config_path: str | Path, model: Type[BaseModel] = Config) -> BaseModel:
+    """Load a YAML file and validate it against the provided Pydantic model."""
+    p = Path(config_path)
+    if not p.exists():
+        raise FileNotFoundError(f"Config file not found: {p}")
+    with p.open("r", encoding="utf-8") as fp:
+        data = yaml.safe_load(fp) or {}
+    return model.model_validate(data)
