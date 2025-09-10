@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Type, overload
+from typing import Optional
 
 import yaml
 from pydantic import BaseModel, Field
@@ -28,23 +28,11 @@ class Config(BaseModel):
     )
 
 
-@overload
-def load_config(config_path: str | Path, model: Type[Config] = ...) -> Config:
-    ...
-
-
-@overload
-def load_config(
-    config_path: str | Path, model: Type[PreprocessConfig]
-) -> PreprocessConfig:
-    ...
-
-
-def load_config(config_path: str | Path, model: Type[BaseModel] = Config) -> BaseModel:
+def load_config(config_path: str | Path, config_model):
     """Load a YAML file and validate it against the provided Pydantic model."""
     p = Path(config_path)
     if not p.exists():
         raise FileNotFoundError(f"Config file not found: {p}")
     with p.open("r", encoding="utf-8") as fp:
         data = yaml.safe_load(fp) or {}
-    return model.model_validate(data)
+    return config_model.model_validate(data)
