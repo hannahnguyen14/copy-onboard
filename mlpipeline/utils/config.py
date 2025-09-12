@@ -12,6 +12,15 @@ class PreprocessConfig(BaseModel):
     id_keys: list[str] = Field(..., description="ID column")
 
 
+class FeatureSpec(BaseModel):
+    name: str
+    transform: str
+
+
+class FeatureManagerConfig(BaseModel):
+    features: list[FeatureSpec]
+
+
 class Config(BaseModel):
     """Configuration for the churn pipeline using Pydantic for validation."""
 
@@ -26,7 +35,8 @@ class Config(BaseModel):
     preprocess: Optional[Path] = Field(
         default=None, description="Path to preprocess YAML"
     )
-
+    features: Optional[Path] = Field(
+        default=None, description="Path to features YAML")
 
 def load_config(config_path: str | Path, config_model):
     """Load a YAML file and validate it against the provided Pydantic model."""

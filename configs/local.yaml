@@ -11,3 +11,4 @@ metrics:
   - F1_SCORE
 
 preprocess: configs/preprocess.yaml
+features: configs/features.yaml

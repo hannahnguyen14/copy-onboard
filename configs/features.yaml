@@ -1,0 +1,39 @@
+features:
+  - name: customer_age
+    transform: fill_median
+  - name: gender
+    transform: fill_unknown
+  - name: dependent_count
+    transform: fill_median
+  - name: education_level
+    transform: fill_unknown
+  - name: marital_status
+    transform: fill_unknown
+  - name: income_category
+    transform: fill_unknown
+  - name: card_category
+    transform: fill_unknown
+  - name: months_on_book
+    transform: fill_median
+  - name: total_relationship_count
+    transform: fill_median
+  - name: months_inactive_12_mon
+    transform: fill_median
+  - name: contacts_count_12_mon
+    transform: fill_median
+  - name: credit_limit
+    transform: fill_median
+  - name: total_revolving_bal
+    transform: fill_median
+  - name: avg_open_to_buy
+    transform: fill_median
+  - name: total_amt_chng_q4_q1
+    transform: fill_median
+  - name: total_trans_amt
+    transform: fill_median
+  - name: total_trans_ct
+    transform: fill_median
+  - name: total_ct_chng_q4_q1
+    transform: fill_median
+  - name: avg_utilization_ratio
+    transform: fill_median

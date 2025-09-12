@@ -6,8 +6,34 @@ from typing import Optional
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
-from mlpipeline.utils.config import Config, PreprocessConfig, load_config
+from mlpipeline.utils.config import (
+    Config, PreprocessConfig, FeatureManagerConfig,
+    FeatureSpec, load_config)
 from mlpipeline.utils.logger import logger
+
+
+class FillMedianTransform:
+    def apply(self, series: pd.Series) -> pd.Series:
+        return series.fillna(series.median())
+
+
+class FillUnknownTransform:
+    def apply(self, series: pd.Series) -> pd.Series:
+        return series.fillna("Unknown")
+
+
+class TransformFactory:
+    _registry: dict[str, type] = {
+        "fill_median": FillMedianTransform,
+        "fill_unknown": FillUnknownTransform,
+    }
+
+    @classmethod
+    def create(cls, name: str):
+        transform_cls = cls._registry.get(name)
+        if not transform_cls:
+            raise ValueError(f"Unknown transform: {name}")
+        return transform_cls()
 
 
 class FeatureManager:
@@ -18,22 +44,22 @@ class FeatureManager:
         self._target: str = config.target_column
 
         # Load preprocess.yaml if provided
-        self._numeric_keys: list[str] = []
         self._id_keys: list[str] = []
         if config.preprocess:
             pp_cfg: PreprocessConfig = load_config(config.preprocess, PreprocessConfig)
-            self._numeric_keys = list(pp_cfg.numeric_keys)
             self._id_keys = list(pp_cfg.id_keys)
 
-        # Chính sách impute mặc định
-        self._impute_numeric = "median"
-        self._impute_categorical = "Unknown"
+        # Load features.yaml
+        self.feature_specs: list[FeatureSpec] = []
+        if config.features:
+            fm_cfg: FeatureManagerConfig = load_config(config.features, FeatureManagerConfig)
+            self.feature_specs = fm_cfg.features
 
         self.feature_columns: Optional[list[str]] = None
 
         logger.info("FeatureManager init | target=%s | preprocess=%s",
                     self._target, self.config.preprocess)
-        logger.info("id_keys=%s | numeric_keys=%s", self._id_keys, self._numeric_keys)
+        logger.info("id_keys=%s | features=%s", self._id_keys, self.feature_specs)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         """ Loại ID và target, cố định list feature và fill NA.
@@ -49,18 +75,12 @@ class FeatureManager:
         features_df = df[keep_cols].copy(deep=True)
         self.feature_columns = keep_cols
 
-        # Impute NA cho cột số bằng median
-        numeric_set = set(self._numeric_keys)
-        numeric_cols = [c for c in keep_cols if c in numeric_set]
-        if numeric_cols:
-            medians = features_df[numeric_cols].median(numeric_only=True)
-            features_df[numeric_cols] = features_df[numeric_cols].fillna(medians)
-
-        # Impute NA cho cột phân loại bằng "Unknown"
-        categorical_cols = [c for c in keep_cols if c not in numeric_set]
-        if categorical_cols:
-            features_df[categorical_cols] = features_df[categorical_cols].fillna(
-                self._impute_categorical)
+        # Áp dụng transform
+        for spec in self.feature_specs:
+            if spec.name not in features_df.columns:
+                continue  # bỏ qua feature không có trong df
+            transform_obj = TransformFactory.create(spec.transform)
+            features_df[spec.name] = transform_obj.apply(features_df[spec.name])
 
         logger.info(
             "FeatureManager.transform | features=%s | X.shape=%s",
